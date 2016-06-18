@@ -2,7 +2,7 @@
 # Name: FileFolderDistribution.py
 # Description: This is a python script which will list all the files and folders in the given path. It will give you
 #               which folders have higher size.
-#               usage: FFDistribution.py <<File/Folder absolute path>>
+#               usage: FileFolderDistribution.py <<File/Folder absolute path>>
 # Date: 6/17/2016
 # Reference:
 # Developer: Harsha Kadekar

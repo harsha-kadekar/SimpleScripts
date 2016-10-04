@@ -289,6 +289,63 @@ def quick_sort(arr):
     quick_sort_rec(arr, 0, len(arr) - 1)
     pass
 
+def max_sub_array_ineff(arr):
+    # There is a bug in this code.
+    maximumsum = arr[0]
+    start = 0
+    end = 0
+    i = 0
+    while i < len(arr):
+        temp_start = i
+        j = i+1
+        max = arr[i]
+        while j < len(arr):
+            max += arr[j]
+            if max > maximumsum:
+                start = i
+                end = j
+                maximumsum = max
+            j += 1
+        i += 1
+
+    return (maximumsum, start, end)
+
+
+def maximum_sub_array(arr):
+    '''
+    This function given a array will return the maximum sum of a sub array among all its possible sub array.
+    and this is O(n) so much efficient when compared to other implementations.
+    params: arr - The array whose maximum sub array needs to be found.
+    return: a tuple - (sum value of sub array, start index of sub array, end index of sub array) 
+    '''
+    start = 0
+    start_temp = 0
+    end = 0
+    end_temp = 0
+    max_sum = arr[0]
+    i = 1
+    sum = arr[0]
+    while i < len(arr):
+        sum += arr[i]
+        if sum <= arr[i]:
+            start_temp = i
+            end_temp = i
+            sum = arr[i]
+        
+        if sum > max_sum:
+            start = start_temp
+            end = i
+            max_sum = sum
+
+        i += 1
+
+    return (max_sum, start, end)
+
+arr = [1, 0, 4, 2, 5, 9, 1]
+print arr
+print max_sub_array_ineff(arr)
+print maximum_sub_array(arr)
+
 
 
 

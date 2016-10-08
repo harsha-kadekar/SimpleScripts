@@ -308,6 +308,144 @@ class binary_tree(object):
                 self.delnode(node.node_data, node.node_right)
 
 
+class simpleHashTable(object):
+    '''
+    This is a simple hashtable. It uses linked list to avoid collision.  
+    Its complexity of find is O(1) and for insert it is asympotically O(1)
+    '''
+    def __init__(self, size=10, hashfunc=hash):
+        '''
+        THis is the constructor of this class. User can provide the initial capacity of the hashtable.
+        By default it uses size as 10 and default hashfunction as inbuilt hash
+        params: size - initial capacity of the hashtable
+                hashfunc - Function used to find the index in the hashtable for the passed key.
+        returns: - 
+        '''
+        self.actual_storage = []
+        self.size = size
+        self.count = 0
+        self.threshold = 0.8
+        self.stepsize = 10
+        self.hashfunc = hashfunc
+        for i in range(0, self.size):
+            self.actual_storage.append([])
+
+    def increaseCapacity(self):
+        '''
+        This function will be used increase the capacity of the hashtable when the number of elements in the hashtable 
+        crosses certain threshold. Not only we need to increase the capacity we need to rehash the existing key, value pairs
+        to the new hashtable.
+        params: - 
+        return: - 
+        '''
+        new_size = self.size + self.stepsize
+        new_array = []
+        for i in range(0, new_size):
+            new_array.append([])
+
+        for i in range(0, self.size):
+            for (p_key, p_value) in self.actual_storage[i]:
+                index = self.hashfunc(p_key)%new_size
+                new_array[index].append((p_key, p_value))
+
+        self.size = new_size
+        self.actual_storage = new_array
+
+    def setitem(self, key, value):
+        '''
+        This function is used to insert the key value pair into the hash table. If key is already present, then modify the value
+        with the new one.
+        params: key - this will be used to find the index of the hashtable
+                value - this is value to be stored in hashtable
+        return: - 
+        '''
+        index = self.hashfunc(key)%self.size
+        if self.actual_storage[index].__len__() == 0:
+            self.actual_storage[index].append((key, value))
+            self.count += 1
+        else:
+            it = 0
+            bFound = False
+            for (p_key, p_value) in self.actual_storage[index]:
+                if p_key == key:
+                    self.actual_storage[index][it] = (key, value)
+                    bFound = True
+                    break
+                it += 1
+            if bFound is False:
+                self.actual_storage[index].append((key, value))
+                self.count += 1
+
+        if float(self.count)/self.size >= self.threshold:
+            self.increaseCapacity()
+
+    def getItem(self, key):
+        '''
+        This function is used to get the value for the provided key. If not found then 
+        it raise an exception.
+        params: key - key whose value needs to be retreived.
+        return: value corresponding to the key.
+        '''
+        value = None
+        index = self.hashfunc(key)%self.size
+        bFound = False
+        for (p_key,p_value) in self.actual_storage[index]:
+            if p_key == key:
+                value = p_value
+                bFound = True
+                break
+
+        if bFound is False:
+            raise Exception('key not found')
+
+        return value
+
+    def delItem(self, key, value=None):
+        '''
+        This function is used to delete the key, value pair corresponding to the key.
+        params: key - whose corresponding entry needs to be deleted.
+        return: - 
+        '''
+        index = self.hashfunc(key)%self.size
+        it = 0
+        tobeDel = []
+        for (p_key, p_value) in self.actual_storage[index]:
+            if p_key == key:
+                if value is not None:
+                    if p_value == value:
+                        tobeDel.append(it)
+                else:
+                    tobeDel.append(it)
+            it += 1
+        for i in tobeDel:
+            del self.actual_storage[index][i]
+            self.count -= 1
+
+    def display(self):
+        '''
+        This function will display all the contents of the the hashtable.
+        params: - 
+        return: - 
+        '''
+        print '===================================================================='
+        for i in range(0, self.size):
+            if self.actual_storage[i].__len__() == 0:
+                print str(i), '--> []'
+            else:
+                mystr = str(i) + ' --> ['
+                vstr = ''
+                for (pkey, pvalue) in self.actual_storage[i]:
+                    vstr = vstr + '('+str(pkey)+','+str(pvalue)+'),'
+                vstr = vstr[:-1]
+                mystr = mystr + vstr + ']'
+                print mystr
+
+
+
+
+
+
+
 
 
 

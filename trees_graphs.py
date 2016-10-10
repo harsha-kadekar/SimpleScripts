@@ -14,6 +14,8 @@ class binary_tree_node(object):
         self.parent = parent
         self.left = left
         self.right = right
+        self.balance_factor = 0
+        self.level = 0
 
     @property
     def node_data(self):
@@ -46,6 +48,22 @@ class binary_tree_node(object):
     @node_right.setter
     def node_right(self, value):
         self.right = value
+
+    @property
+    def node_balance_factor(self):
+        return self.balance_factor
+
+    @node_balance_factor.setter
+    def node_balance_factor(self, value):
+        self.balance_factor = value
+
+    @property
+    def node_level(self):
+        return self.level
+
+    @node_level.setter
+    def node_level(self, value):
+        self.level = value
 
 
 
@@ -307,6 +325,32 @@ class binary_tree(object):
                 node.node_data = succ_or.node_data
                 self.delnode(node.node_data, node.node_right)
 
+    def findTreeheight(self):
+        '''
+        This function will give you the height of the BST tree
+        params: -
+        return: height of the tree.
+        '''
+        self.findnodeheight(self.tree_root)
+
+    def findnodeheight(self, root):
+        '''
+        This function will give you the height of the Binary Search sub tree which is rooted at passed node.
+        params: root - node which acts as the root of the subtree and whose height needs to be calculated.
+        return: height of the root in the tree.
+        '''
+        right_child_height = 0
+        left_child_height = 0
+
+        if root is not None:
+            if root.node_right is not None:
+                right_child_height = self.findnodeheight(root.node_right) 
+
+            if root.node_left is not None:
+                left_child_height = self.findnodeheight(root.node_left)
+
+        return max(left_child_height, left_child_height) + 1
+
 
 class simpleHashTable(object):
     '''
@@ -441,6 +485,251 @@ class simpleHashTable(object):
                 print mystr
 
 
+
+class avl_tree(object):
+    '''
+    This is an avl tree. Its a self balancing tree. It makes sure that depth of the tree remains almost balanced. Basically leaves should be at the same distance from 
+    the root. Either n or n-1
+    '''
+    def __init__(self):
+        self.tree_root = None
+
+    def inorder(self):
+        '''
+        THis is the funciton used by the outside world to display the contents of the tree in ascending order.
+        It prints in Left Root Right order.
+        params: - 
+        return: - 
+        '''
+        print '================================================================================'
+        self.inorder_rec(self.tree_root)
+
+    def inorder_rec(self, root):
+        '''
+        This funciton will display the contents of the tree in the inorder that is acending order - Left Root Right.
+        params: root - Starting point of the tree from where inorder has to be started.
+        return: - 
+        '''
+        if root is not None:
+            self.inorder_rec(root.node_left)
+            print 'data = '+str(root.node_data) + ' Level = '+str(root.node_level) + ' Balance Factor = '+str(root.node_balance_factor)
+            self.inorder_rec(root.node_right)
+
+    def insert(self, item):
+        '''
+        THis is the funciton outside world uses to insert a new item inside the tree. But it intern calls insert_rec_node.
+        params: item - number to be inserted inside the tree.
+        return: - 
+        '''
+        new_node = binary_tree_node(data=item)
+        if self.tree_root is None:
+            self.tree_root = new_node
+        else:
+            self.insert_rec_node(self.tree_root, new_node)
+
+    def rebalance_tree(self, root):
+        '''
+        THis function will rebalance the tree by performing either right rotation, left-right rotation, left rotation or right left rotation to
+        correct the left-left case, left right case, right right case or right left case. Once rebalanced for this node. It will recalucate the 
+        balance factors of the nodes below it.
+        params: root - node which is the starting node of the portion which needs to be rebalanced.
+        return: - 
+        '''
+        if root.node_balance_factor > 1:
+            if root.node_left.node_balance_factor == 1: #Left-Left Case
+                z = root
+                y = root.node_left
+                x = root.node_left.node_left
+                t1 = root.node_left.node_left.node_left
+                t2 = root.node_left.node_left.node_right
+                t3 = root.node_left.node_right
+                t4 = root.node_right
+
+                #Right Rotation
+                y.node_parent = z.node_parent
+                y.node_right = z
+                z.node_parent = y
+                z.node_left = t3
+                if t3 is not None:
+                    t3.node_parent = z
+
+                root = y
+                if root.node_parent is None:
+                    self.tree_root = y
+                else:
+                    root.node_parent.node_left = root
+
+            else:                                       #Left-Right Case
+                z = root
+                y = root.node_left
+                x = root.node_left.node_right
+                t1 = root.node_left.node_left
+                t2 = root.node_left.node_right.node_left
+                t3 = root.node_left.node_right.node_right
+                t4 = root.node_right
+
+                #Left-Right Rotation
+                x.node_parent = z.node_parent
+                x.node_left = y
+                x.node_right = z
+                y.node_parent = x
+                z.node_parent = x
+                y.node_right = t2
+                if t2 is not None:
+                    t2.node_parent = y
+                z.node_left = t3
+                if t3 is not None:
+                    t3.node_parent = z
+
+                root = x
+                if root.node_parent is None:
+                    self.tree_root = x
+                else:
+                    root.node_parent.node_left = root
+
+        else:
+            if root.node_right.node_balance_factor == -1: #Right-Right Case
+                z = root
+                y = root.node_right
+                x = root.node_right.node_right
+                t1 = root.node_left
+                t2 = root.node_right.node_left
+                t3 = root.node_right.node_right.node_left
+                t4 = root.node_right.node_right.node_right
+
+                #Left rotation
+                y.node_parent = z.node_parent
+                y.node_left = z
+                z.node_parent = y
+                z.node_right = t2
+                if t2 is not None:
+                    t2.node_parent = z
+
+                root = y
+                if root.node_parent is None:
+                    self.tree_root = y
+                else:
+                    root.node_parent.node_right = root
+
+            else:                                         #Right-Left Case
+                z = root
+                y = root.node_right
+                x = root.node_right.node_left
+                t1 = root.node_left
+                t2 = root.node_right.node_left.node_left
+                t3 = root.node_right.node_left.node_right
+                t4 = root.node_right.node_right
+
+                #Right Left rotation
+                x.node_parent = z.node_parent
+                x.node_left = z
+                x.node_right = y
+                z.node_parent = x
+                y.node_parent = x
+                z.node_right = t2
+                if t2 is not None:
+                    t2.node_parent = z
+                y.node_left = t3
+                if t3 is not None:
+                    t3.node_parent = y
+
+                root = x
+                if root.node_parent is None:
+                    self.tree_root = x
+                else:
+                    root.node_parent.node_right = root
+
+        return root
+
+
+    def insert_rec_node(self, root, new_node):
+        '''
+        THis function will insert a node to the subtree whose root is given in a recursive call. As it inserts it will also calculate the balance factor
+        and if it is violating then rebalancing is done.
+        params: root - subtrees root, under whom new_node needs to be added.
+                new_node - This is the node to be added to the subtree whose root is given.
+        return: -
+        '''
+        if root.node_left is None and root.node_right is None:
+            if root.node_data < new_node.node_data:
+                root.node_right = new_node
+                new_node.node_parent = root
+                root.node_level = new_node.node_level + 1
+                root.node_balance_factor = -(new_node.node_level+1)
+            else:
+                root.node_left = new_node
+                new_node.node_parent = root
+                root.node_level = new_node.node_level + 1
+                root.node_balance_factor = new_node.node_level+1
+        else:
+            if root.node_data < new_node.node_data:
+                if root.node_right is not None:
+                    self.insert_rec_node(root.node_right, new_node)
+                else:
+                    root.node_right = new_node
+                    new_node.node_parent = root
+            else:
+                if root.node_left is not None:
+                    self.insert_rec_node(root.node_left, new_node)
+                else:
+                    root.node_left = new_node
+                    new_node.node_parent = root
+                    
+            if root.node_left is not None and root.node_right is not None:
+                root.node_level = max(root.node_left.node_level, root.node_right.node_level) + 1
+
+                root.node_balance_factor = root.node_left.node_level - root.node_right.node_level
+            else:
+                if root.node_left is None:
+                    root.node_level = root.node_right.node_level + 1
+                    root.node_balance_factor = -(root.node_right.node_level+1)
+                else:
+                    root.node_level = root.node_left.node_level + 1
+                    root.node_balance_factor = root.node_left.node_level+1
+
+        if root.node_balance_factor > 1 or root.node_balance_factor < -1:
+            root = self.rebalance_tree(root)
+            self.calculate_balance_factor(root)
+
+    #def update_level_balance_factor(self
+
+
+    def calculate_balance_factor(self, node=None):
+        '''
+        This function will help to calculate the balance factor of a node. If it violates any then 
+        it will call rebalance function.
+        params: node - node whose level/height and balance factor needs to be calculated.
+        return: -
+        '''
+        if node == None:
+            node = self.tree_root
+
+        if node.node_left is None and node.node_right is None:
+            node.node_level = 0
+            node.node_balance_factor = 0
+        else:
+            if node.node_left is not None:
+                self.calculate_balance_factor(node.node_left)
+            if node.node_right is not None:
+                self.calculate_balance_factor(node.node_right)
+
+            if node.node_right is not None and node.node_left is not None:
+                node.node_level = max(node.node_right.node_level, node.node_left.node_level) + 1
+                node.node_balance_factor = node.node_left.node_level - node.node_right.node_level
+            else:
+                if node.node_right is None:
+                    node.node_level = node.node_left.node_level + 1
+                    node.node_balance_factor = node.node_left.node_level+1
+                else:
+                    node.node_level = node.node_right.node_level + 1
+                    node.node_balance_factor = -(node.node_right.node_level +1)
+        
+        if node.node_balance_factor > 1 or node.node_balance_factor < -1:
+            node = self.rebalance_tree(node)
+
+
+
+            
 
 
 

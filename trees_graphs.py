@@ -5,6 +5,8 @@
 # Date: 10/5/2016
 ############################################################################################################################################
 
+import numpy as ny
+
 class binary_tree_node(object):
     '''
     This is the individual node of a binary tree. It has following fields  - data, parent node link, left child node link and right child node link.
@@ -352,7 +354,7 @@ class binary_tree(object):
         return max(left_child_height, left_child_height) + 1
 
 
-class simpleHashTable(object):
+class simpleChainedHashTable(object):
     '''
     This is a simple hashtable. It uses linked list to avoid collision.  
     Its complexity of find is O(1) and for insert it is asympotically O(1)
@@ -726,6 +728,116 @@ class avl_tree(object):
         
         if node.node_balance_factor > 1 or node.node_balance_factor < -1:
             node = self.rebalance_tree(node)
+
+class simpleOpenHashTable(object):
+    '''
+    THis is a dictionary which follows the concept of open hashing.
+    '''
+    def __init__(self, size=10, hashfunc=hash):
+        self.actualArray = []
+        self.size = size
+        self.loadFactor = 0.8
+        self.count = 0
+        self.hashfunc = hashfunc
+        
+        for i in range(0, size):
+            self.actualArray.append(None)
+
+    def increaseCapacity(self):
+        '''
+        This function will increase the size of the array on violation of load factor condition. It also rebuilds the hashtable after increasing 
+        the size as now index will be different.
+        params: - 
+        return: - 
+        '''
+        new_size = self.size + 10
+        new_array = []
+
+        for i in range(0, new_count):
+            new_array.append(None)
+
+        for i in range(0, self.size):
+            tup = self.actualArray[i]
+            for j in range(0, new_size):
+                index = (self.hashfunc(tup[0])+j)%new_size
+                if new_array[index] is None:
+                    new_array[index] = tup
+                    break
+
+        self.count = new_size
+        self.actualArray = new_array
+
+    def __setitem__(self, key, value):
+       '''
+       THis function will set a new item to the dictionary. After inserting new element or updating existing one, it will check the load balance.
+       If it is more than that then it will rebuild the dictionaryd with new size.
+       params: key - item used for finding the index in the array.
+               value - actual item to be stored.
+       return: -
+       '''
+       if self.__contains__(key):
+           for i in range(0, self.size):
+               index = (self.hashfunc(key)+i)%self.size
+               xtuple = self.actualArray[index]
+               if xtuple[0] == key:
+                   self.actualArray[index] = (key,value)
+                   break
+       else:
+           for i in range(0, self.size):
+               index = (self.hashfunc(key)+i)%self.size
+               if self.actualArray[index] is None or self.actualArray[index] == (ny.Infinity, ny.Infinity):
+                   self.actualArray[index] = (key, value)
+                   self.count += 1
+                   break
+       if float(self.count)/self.size >= self.loadFactor:
+            self.increaseCapacity
+
+    def __contains__(self, key):
+        '''
+        This function will check whether given key exists in the dictionary. If it is present then it will return true else false.
+        params: key - key to be searched in the dictionary.
+        return: if present true else false
+        '''
+        for i in range(0, self.size):
+            index = (self.hashfunc(key)+i)%self.size
+            if self.actualArray[index] is None:
+                return False
+            else:
+                if self.actualArray[index][0] == key:
+                    return True
+        return False
+
+    def __getitem__(self, key):
+        '''
+        This function will get the item from the array based on the key. If not present then it will return None
+        params: key - value used to find the item.
+        return: if found then item else None
+        '''
+        for i in range(0, self.size):
+            index = (self.hashfunc(key)+i)%self.size
+            if self.actualArray[index] is None:
+                return None
+            else:
+                if self.actualArray[index][0] == key:
+                    return self.actualArray[index][1]
+        return None
+
+    def __delitem__(self, key):
+        '''
+        This function will delete the item present in the dictionary.
+        params: key - value used to find the item to be deleted.
+        return: -
+        '''
+        for i in range(0, self.size):
+            index = (self.hashfunc(key)+i)%self.size
+            if self.actualArray[index] is None:
+                break
+            else:
+                if self.actualArray[index][0] == key:
+                    self.actualArray[index] = (ny.Infinity, ny.Infinity)
+                    break
+
+
 
 
 

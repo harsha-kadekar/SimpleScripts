@@ -341,11 +341,45 @@ def maximum_sub_array(arr):
 
     return (max_sum, start, end)
 
-arr = [1, 0, 4, 2, 5, 9, 1]
-print arr
-print max_sub_array_ineff(arr)
-print maximum_sub_array(arr)
 
+def gcd(m,n):
+    '''
+    This funciton will return the gcd - greatest common divisor of m and n.
+    params: m - one of the number among two whose greatest common divisor needs to be found.
+            n - one of the number among two whose greatest common divisor needs to be found
+    return: greatest common division of a and b
+    '''
+    a = max(m,n)
+    b = min(m, n)
+    while b != 0:
+        t = b
+        b = a % b
+        a = t
+    return a
 
+def lcm(m, n):
+    '''
+    This function will return the lcm - least common multiple of m and n.
+    params: m - one of the number among two whose lcm needs to be found.
+            n - one of the number among two whose lcm needs to be found.
+    return: least common multiple of m and n
+    '''
+    return m*n/gcd(m,n)
+
+def towersofhonoi(n, source, destination, buffer):
+    '''
+    This function is moving n rings from source rod to destination rod using buffer rod as buffer.
+    params: n - number of discs to be moved.
+            source - where the discs are currently present
+            destination - where the discs to be moved.
+            buffer - buffer rod to be used to move from source to destination.
+    return: - 
+    '''
+    if n> 1:
+        towersofhonoi(n-1, source, buffer, destination)
+        print 'move disc '+str(n)+' from '+source+' to '+destination
+        towersofhonoi(n-1, buffer, destination, source)
+    else:
+        print 'move disc 1 from '+source + ' to ' +destination
 
 

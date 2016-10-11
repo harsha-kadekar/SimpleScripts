@@ -839,6 +839,194 @@ class simpleOpenHashTable(object):
 
 
 
+class BTreeNode(object):
+    def __init__(self, degree):
+        self.degree = degree
+        self.arkeys = []
+        self.archildren = []
+        self.parent = None
+        self.isLeaf = True
+
+    @property
+    def node_parent(self):
+        return self.parent
+
+    @node_parent.setter
+    def node_parent(self, value):
+        self.parent = value
+
+    @property
+    def node_isLeaf(self):
+        return self.isLeaf
+
+    @node_isLeaf.setter
+    def node_isLeaf(self, value):
+        self.isLeaf = value
+
+    @property
+    def node_degree(self):
+        return self.degree
+
+    @node_degree.setter
+    def node_degree(self, value):
+        self.degree = value
+
+    @property
+    def node_keys(self):
+        return self.arkeys
+
+    @node_keys.setter
+    def node_keys(self, value):
+        self.arkeys = value
+
+    @property
+    def node_children(self):
+        return self.archildren
+
+    @node_children.setter
+    def node_children(self, value):
+        self.archildren = value
+
+        
+
+class BTree(object):
+    '''
+    This class will create a btree. It is generalized to have any degree of 'B' value.
+    '''
+    def __init__(self):
+        '''
+        Constructor of the class. It has only one member tree root. rest all are from the btree node which represents each node in this tree
+        '''
+        self.tree_root = None
+
+    def inorder(self):
+        '''
+        This function is the interface given to outside world to display the element of the tree in inorder - Left Root Right way.
+        params: -
+        return: - 
+        '''
+        self.inorder_rec(self.tree_root)
+
+    def inorder_rec(self, root):
+        '''
+        This function will print the elements in the subtree whose root is root in an inorder fassion - Left Root Right.
+        params: root - Node whose subtree needs to be displayed in inorder.
+        return: - 
+        '''
+        if root.node_isLeaf:
+            for i in range(0, len(root.node_keys)):
+                print root.node_keys[i]
+        else:
+            for i in range(0, len(root.node_keys)):
+                self.inorder_rec(root.node_children[i])
+                print root.node_keys[i]
+            root.inorder_rec(root.node_children[i])
+
+    def insert(self, element):
+        '''
+        This interface can be used for inserting a new element into the tree. It intern uses insert_rec a recursive function.
+        params: - element - This is the element is to be inserted to tree.
+        return: -
+        '''
+        self.insert_rec(self, self.tree_root, element)
+
+    def split(self, node):
+        '''
+        This function is used to split a filled up node. When node keys capacity exceeds the 2B-2 condition, this function will be called.
+        It will split the node into two new nodes. If it does not have a parent then it will form a new root for the tree, else add a new key 
+        to the parent node. This will be recursively done from leaf till root.
+        params: node - This is the node to be splitted into two.
+        return - 
+        '''
+        mid_index = node.node_degree/2
+        new_node1 = BTreeNode(node.node_degree)
+        new_node2 = BTreeNode(node.node_degree)
+        i = 0
+        while i < mid_index:
+            new_node1.node_keys.append(node.node_keys[i])
+            if node.node_isLeaf is False:
+                new_node1.node_children.append(node.node_children[i])
+                node.node_children[i].node_parent = new_node1
+            i += 1
+        if node.node_isLeaf is False:
+            new_node1.node_children.append(node.node_children[i])
+            node.node_children[i].node_parent = new_node1
+        i += 1
+        while i < len(node.node_keys):
+            new_node2.node_keys.append(node.node_keys[i])
+            if node.node_isLeaf is False:
+                new_node2.node_children.append(node.node_children[i])
+                node.node_children[i].node_parent = new_node2
+            i += 1
+
+        if node.node_isLeaf is False:
+            new_node2.node_children.append(node.node_children[i])
+            node.node_children[i].node_parent = new_node2
+
+        if node.node_parent is None:
+            parent_node = BTreeNode(node.node_degree)
+            parent_node.node_isLeaf = False
+            parent_node.node_keys.append(node.node_keys[mid_index])
+            new_node1.node_parent = parent_node
+            new_node2.node_parent = parent_node
+            parent_node.node_children.append(new_node2)
+            parent_node.node_children.append(new_node1)
+            self.tree_root = parent_node
+        else:
+            element = node.node_keys[mid_index]
+
+            i = 0
+            while(i < node.node_parent.node_keys.__len__()):
+                if node.node_parent.node_keys[i] > element:
+                    break
+                i += 1
+
+            del node.node_children[i]
+            node.node_parent.node_keys.insert(i, element)
+            node.node_children.insert(i, new_node2)
+            node.node_children.insert(i, new_node1)
+
+            new_node2.node_parent = node.node_parent
+            new_node1.node_parent = node.node_parent
+
+            if len(node.node_parent.node_keys ) > 2*node.node_parent.node_degree - 2:
+                self.split(node.node_parent)
+
+    def insert_rec(self, root, element):
+        '''
+        This function is used to add an element to a particular node. If by addition it crosses the limit of keys then it will call the
+        split function to split the node into 2.
+        params: root - node where new element needs to be added.
+                element - new element to be added to tree.
+        return: - 
+        '''
+        if root.node_isLeaf:
+            i = 0
+            while i < root.node_keys.__len__():
+                if root.node_keys[i] > element:
+                    break
+                i += 1
+            ls = []
+            if i == root.node_keys.__len__():
+                root.node_keys.append(element)
+            else:
+                root.node_keys.insert(i, element)
+
+            if root.node_keys.__len__() >= 2*root.node_degree - 2:
+                self.split(root)
+
+        else:
+            i = 0
+            while i < len(root.node_keys):
+                if element < root.node_keys[i]:
+                    self.insert_rec(root.node_children[i], element)
+                    break
+                i += 1
+            if i == root.noe_keys.__len__():
+                self.insert_rec(root.node_children[i], element)
+
+       
+
 
 
             

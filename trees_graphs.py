@@ -1025,6 +1025,229 @@ class BTree(object):
             if i == root.noe_keys.__len__():
                 self.insert_rec(root.node_children[i], element)
 
+
+class tries_node(object):
+    '''
+    This node represents a single node of the tries tree.
+    It has a set of children represented using dictionary
+    and data representing the value of the node.
+    '''
+    def __init__(self):
+        self.children = {}
+        self.data = None
+        self.isComplete = False
+
+    @property
+    def node_children(self):
+        return self.children
+
+    @node_children.setter
+    def node_children(self, value):
+        self.children = value
+
+    @property
+    def node_isComplete(self):
+        return self.isComplete
+
+    @node_isComplete.setter
+    def node_isComplete(self, value):
+        self.isComplete = value
+
+    @property
+    def node_data(self):
+        return self.data
+
+    @node_property.setter
+    def node_data(self, value):
+        self.data = value
+
+class tries(object):
+    '''
+    This is a tries tree which can be used to store list of strings which are related to each other. Example good to hold word dictionary.
+    '''
+    def __init__(self):
+        self.tree_root = tries_node()
+
+    def insertValue(self, word):
+        '''
+        Insert a new word to the tree. Each letter in the word, a node will be inserted to the
+        tree if it does not exists. 
+        Params: word - word to be inserted into the tree.
+        '''
+        self.insert_rec(word, self.tree_root)
+
+    def insert_rec(self, word, root):
+        '''
+        Insert the word to the subtree whose root is given. It does this by recursive call.
+        Params: word - word to be inserted under the root.
+                root - tree's root under which word needs to be inserted.
+        '''
+        if root.node_children.has_key(word[:1]):
+            if len(word) == 1:
+                return
+            self.insert_rec(word[1:], root.node_children[word[:1]])
+        else:
+            new_node = tries_node()
+            new_node.node_data = word[:1]
+            if len(word) == 1:
+                new_node.node_isComplete = True
+                new_node.node_children.__setitem__('*#$*', '__END__')
+                root.node_children.__setitem__(word[:1], new_node)
+                return
+            self.insert_rec(word[1:], root.node_children[word[:1]])
+
+    def search(self, word):
+        '''
+        This function returns true if word is present in the tree or not.
+        Params: word - word to be searched in the tree.
+        Return: true if found else false
+        '''
+        self.search_rec(word, self.tree_root)
+
+    def search_rec(self, word, root):
+        '''
+        This function returns true if word in present under the subtree rooted under root. If not it will return false
+        Params: word - word to be searched in tree
+                root - subtree where the word needs to be searched.
+        return: - 
+        '''
+        if root.node_children.has_key(word[:1]):
+            if len(word) == 1:
+                if root.node_children[word[:1]].node_children.has_key('*#$*'):
+                    return True
+                else:
+                    return False
+            return root.search_rec(self, word[1:], root.node_children[word[:1]])
+        return False
+
+    def count_words(self):
+        '''
+        This function will return the number of words currently stored in the tree.
+        Params: -
+        Return: number of words in tree
+        '''
+        self.count_words_rec(self.tree_root)
+
+    def count_words_rec(self, root):
+        '''
+        This function will return the number of words currently stored under the subtree.
+        Params: root - subtrees root from where words needs to be serched.
+        return: count of words stored in the tree.
+        '''
+        sum = 0
+        if root.node_children.__len__() > 0:
+            if root.node_data == '*#$*':
+                return 1
+            for child in root.node_children.keys():
+                sum += self.count_words_rec(self,root.node_children[child])
+        return sum
+
+class graph_node(object):
+    def __init__(self):
+        self.id = None
+        self.adjacent = {}
+
+    @property
+    def node_id(self):
+        return self.id
+
+    @node_id.setter
+    def node_id(self, value):
+        self.id = value
+
+    @property
+    def node_adjacent(self):
+        return self.adjacent
+
+    @node_adjacent.setter
+    def node_adjacent(self, value):
+        self.adjacent = value
+
+class undirectedgraph(object):
+    def __init__(self):
+        self.nodes = {}
+
+    def getNode(self, id):
+        if self.nodes.has_key(id):
+            return self.nodes[id]
+        return None
+
+    def addNode(self, id):
+        if self.nodes.has_key(id):
+            return self.nodes[id]
+        new_node = graph_node()
+        new_node.node_id = id
+        self.nodes.__setitem__(id, new_node)
+        return new_node
+
+    def add_edge(self, start_id, end_id):
+        start = self.nodes[start_id]
+        end = self.nodes[end_id]
+        start.node_adjacent.__setitem__(end_id, end)
+        end.node_adjacent.__setitem__(start_id, start)
+
+    def remove_edge(self, start_id, end_id):
+        start = self.nodes[start_id]
+        end = self.nodes[end_id]
+        start.node_adjacent.__delitem__(end_id)
+        end.node_adjacent.__delitem__(start_id)
+
+    def deleteNode(self, id):
+        node = self.nodes[id]
+        for adj in node.node_adjacent:
+            adj.node_adjacent.__delitem__(id)
+        del self.nodes[id]
+
+    def hasEdge(self, start_id, end_id, useDFS=False):
+        hasvisited = []
+        start = self.nodes[start_id]
+        if useDFS:
+            if self.dfs(node, self.nodes[end_id], hasvisited) is None:
+                return False
+            else:
+                return True
+        else:
+            listNodes = []
+            listNodes.append(start)
+            if self.bfs(listNodes, self.nodes[end_id], hasvisited) is None:
+                return False
+            else:
+                return True
+
+    def bfs(self, listNodes, end, hasvisited):
+        if len(listNodes) == 0:
+            return None
+        else:
+            node = listNodes.pop(0)
+            hasvisited.append(node)
+            for adj in node.node_adjacent.keys():
+                if not hasvisited.__contains__(self.nodes[adj]):
+                    if self.nodes[adj] == end:
+                        return end
+                    else:
+                        listNodes.append(self.nodes[adj])
+            return self.bfs(listNodes, end, hasvisited)
+
+
+    def dfs(self, node, end, hasvisited):
+        hasvisited.append(node)
+        for adj in node.node_adjacent:
+            if not hasvisited.__contains__(adj):
+                if adj == end:
+                    return adj
+                else:
+                    x = self.dfs(adj, end, hasvisited)
+                    if x is not None:
+                        return x
+        return None
+                
+
+
+
+
+
+
+
        
 
 
